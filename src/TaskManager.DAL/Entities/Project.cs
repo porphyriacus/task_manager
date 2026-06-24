@@ -1,14 +1,15 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿
 using System;
 using System.Collections.Generic;
 using System.Text;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace TaskManager.Core.Entities
+namespace TaskManager.DAL.Entities
 {
     public class Project
     {
         private readonly List<Board> _boards = new();
+        private readonly List<User> _users = new();
 
         public int Id { get; private set; }
         public string OwnerId { get; private set; }
@@ -18,7 +19,8 @@ namespace TaskManager.Core.Entities
         public string Description { get; private set; } = string.Empty;
         public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
-        public IReadOnlyCollection<Board> boards { get =>  _boards.AsReadOnly(); }
+        public IReadOnlyCollection<Board> Boards { get =>  _boards.AsReadOnly(); }
+        public IReadOnlyCollection<User> Users { get => _users.AsReadOnly(); }
 
         protected Project() { }
         public Project(string  ownerId, string name, string description)

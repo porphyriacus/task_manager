@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="src/TaskManager.API/TaskManager.API.csproj" />
   <Project Path="src/TaskManager.Core/TaskManager.Core.csproj" />
+  <Project Path="src/TaskManager.DAL/TaskManager.DAL.csproj" Id="d230b307-24a3-43c9-9ffa-73543ff57aa1" />
 </Solution>

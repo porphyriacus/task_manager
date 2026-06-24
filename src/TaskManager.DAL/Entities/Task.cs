@@ -3,14 +3,17 @@ using System.Collections.Generic;
 using System.Text;
 using TaskManager.Core.Enums;
 
-namespace TaskManager.Core.Entities
+namespace TaskManager.DAL.Entities
 {
-    public class Task
+    public class TaskEntity
     {
         private readonly List<User> _executers = new();
         private readonly List<Tag> _tags = new();
+        private readonly List<Comment> _comments = new();
+
         public int Id { get; private set; }
         public int BoardId { get; private set; }
+        public Board Board { get; private set; }
         public string OwnerId { get; private set; }
         public User Owner { get; private set; }
 
@@ -21,10 +24,11 @@ namespace TaskManager.Core.Entities
 
         public IReadOnlyCollection<User> Executers => _executers.AsReadOnly();
         public IReadOnlyCollection<Tag> Tags => _tags.AsReadOnly();
+        public IReadOnlyCollection<Comment> Comments => _comments.AsReadOnly();
 
-        protected Task() { }
+        protected TaskEntity() { }
 
-        public Task(int boardId, string ownerId, string name, string description, DateTime deadline, TaskPriority priority)
+        public TaskEntity(int boardId, string ownerId, string name, string description, DateTime deadline, TaskPriority priority)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException(nameof(name));
@@ -45,9 +49,7 @@ namespace TaskManager.Core.Entities
         }
         public void ChangeDescription(string newDescription)
         {
-            if (System.String.IsNullOrEmpty(newDescription))
-                throw new ArgumentNullException(nameof(newDescription));
-            Description = newDescription;
+            Description = newDescription ?? string.Empty;
         }
 
 
