@@ -7,7 +7,7 @@ namespace TaskManager.Core.DTOs.TaskDTO
 {
     public class TaskFilteredDto
     {
-        [Length(2, 100, ErrorMessage = "SearchTerm must have length in range 3-100 symbols")]
+        [StringLength(100, MinimumLength = 3, ErrorMessage = "SearchTerm must have length in range 3-100 symbols")]
         public string? SearchTerm { get; set; }         // if null -> all tasks
         public int? BoardId { get; set; }               // if (BoardId == null) -> all tasks
         public string? SortedBy { get; set; }           // "deadline", "priority", "name" 
