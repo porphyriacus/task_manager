@@ -1,9 +1,6 @@
 ﻿using FluentValidation;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using TaskManager.Core.DTOs.TaskDTO;
-using TaskManager.Core.Interfaces;
 
 namespace TaskManager.API.Controllers
 {

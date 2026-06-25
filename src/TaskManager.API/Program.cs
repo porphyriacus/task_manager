@@ -1,5 +1,6 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using TaskManager.DAL.Data;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +12,11 @@ var connectionstring = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(
     options => options.UseNpgsql(connectionstring));
 
-
+// core
+builder.Services.AddValidators()
+                .AddServices();
+// dal
+builder.Services.AddRepositories();
 
 
 var app = builder.Build();

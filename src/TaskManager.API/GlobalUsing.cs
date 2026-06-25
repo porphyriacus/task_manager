@@ -1,0 +1,10 @@
+﻿global using TaskManager.Core.DTOs.TaskDTO;
+global using TaskManager.Core.Interfaces;
+global using TaskManager.Core.Services;
+global using TaskManager.Core.Validators;
+global using TaskManager.DAL.Data;
+global using TaskManager.DAL.Entities;
+global using TaskManager.Core;
+global using TaskManager.DAL;
+global using TaskManager.DAL.Interfaces;
+global using TaskManager.DAL.Repositories;
