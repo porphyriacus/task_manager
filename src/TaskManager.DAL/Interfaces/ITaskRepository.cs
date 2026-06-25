@@ -6,7 +6,7 @@ using TaskManager.DAL.Entities;
 
 namespace TaskManager.DAL.Interfaces
 {
-    internal interface ITaskRepository
+    public interface ITaskRepository
     {
         public Task<TaskEntity> GetTaskByIdAsync(
             int id

@@ -9,7 +9,6 @@ namespace TaskManager.Core.Interfaces
     {
         public Task<TaskSummaryDto> CreateAsync(TaskCreateDto create, CancellationToken cancellationToken);
         //— валидация(проверка названия), создание сущности TaskEntity, вызов _taskRepository.AddAsync, затем _context.SaveChangesAsync(). Возвращаешь TaskResponseDto.
-        public Task<List<TaskSummaryDto>> GetAllAsync(CancellationToken cancellationToken);
         public Task<List<TaskSummaryDto>> GetListAsync(TaskFilteredDto search, CancellationToken cancellationToken);
 
         public Task<TaskSummaryDto> GetByIdAsync(int id, CancellationToken cancellationToken);

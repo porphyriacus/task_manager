@@ -19,7 +19,7 @@ namespace TaskManager.DAL.Entities
 
         public string Name { get; private set; }
         public string Description { get; private set; } = string.Empty;
-        public DateTime Deadline { get; private set; }
+        public DateTime? Deadline { get; private set; }
         public TaskPriority Priority { get; private set; }
 
         public IReadOnlyCollection<User> Executers => _executers.AsReadOnly();

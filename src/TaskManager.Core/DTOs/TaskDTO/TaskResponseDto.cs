@@ -13,7 +13,7 @@ namespace TaskManager.Core.DTOs.TaskDTO
         public int BoardId { get; set; }
         public string Boardname { get; set; }
 
-        public int OwnerId { get; set; }
+        public string? OwnerId { get; set; }
         public string OwnerName { get; set; }
 
         public string Name { get; set; }
