@@ -17,9 +17,10 @@ namespace TaskManager.Core.Services
         private readonly ITaskRepository _taskRepository;
         // private readonly IBoardRepository _boardRepository;
         private readonly AppDbContext _context;
-        public TaskService(ITaskRepository taskRepository)
+        public TaskService(AppDbContext context, ITaskRepository taskRepository)
         {
             _taskRepository = taskRepository;
+            _context = context;
         }
 
 
@@ -87,7 +88,6 @@ namespace TaskManager.Core.Services
                 , cancellationToken
                 , t => t.Board
                 , t => t.Owner);
-
             return tasks.Select(MapToSummaryDto).ToList();
         }
 
@@ -100,6 +100,7 @@ namespace TaskManager.Core.Services
             {
                 throw new KeyNotFoundException($"Task with ID {id} not found");
             }
+
             return MapToSummaryDto(task);
         }
 
@@ -118,7 +119,7 @@ namespace TaskManager.Core.Services
                 task.ChangeDeadline(dto.Deadline);
 
             await _taskRepository.UpdateAsync(task, cancellationToken);
-
+            await _context.SaveChangesAsync(cancellationToken);
             return MapToSummaryDto(task);
 
         }
@@ -128,6 +129,7 @@ namespace TaskManager.Core.Services
             if (task == null)
                 throw new KeyNotFoundException($"Task with ID {id} not found");
             await _taskRepository.DeleteAsync(task, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
             return MapToSummaryDto(task);
 
         }
