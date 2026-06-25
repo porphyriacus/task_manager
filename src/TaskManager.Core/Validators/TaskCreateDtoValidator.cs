@@ -14,9 +14,6 @@ namespace TaskManager.Core.Validators
             // will be implemented later
             /*
              
-            RuleFor(c => c.Name)
-                .MustAsync(IsTaskOnBoardNotExist)
-                .WithMessage("Task with this name has already exist on board");
             RuleFor(c => c.BoardId)
                 .MustAsync(IsBoardExist)
                 .WithMessage("Task with this name has already exist on board");
@@ -36,18 +33,23 @@ namespace TaskManager.Core.Validators
         private async Task<bool> IsBoardExist(int BoardId, CancellationToken cancellationToken) {
             //not implemented yet
             /*
+            
+            var boardExists = await _boardRepository.ExistsAsync(dto.BoardId, cancellationToken);
+            if (!boardExists)
+                throw new ArgumentException($"Board with ID {dto.BoardId} does not exist");
+
+            
+            var duplicateExists = await _taskRepository.ExistsAsync(
+                t => t.Name == dto.Name && t.BoardId == dto.BoardId,
+                cancellationToken
+            );
+
+            if (duplicateExists)
+                throw new InvalidOperationException($"Task '{dto.Name}' already exists in this board");
              var = await 
              */
             return true;
         }
 
-        private async Task<bool> IsTaskOnBoardNotExist(string name, CancellationToken cancellationToken)
-        {
-            //not implemented yet
-            /*
-             var = await 
-             */
-            return true;
-        }
     }
 }

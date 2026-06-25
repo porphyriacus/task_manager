@@ -21,7 +21,7 @@ namespace TaskManager.DAL.Repositories
         public async Task<TaskEntity> GetTaskByIdAsync(
            int id
            , CancellationToken cancellationToken = default
-           , Expression<Func<TaskEntity, object>>[]? includeProperties = null
+           , params Expression<Func<TaskEntity, object>>[]? includeProperties 
            )
         {
             var query = _tasks.AsQueryable();
@@ -38,18 +38,21 @@ namespace TaskManager.DAL.Repositories
             if (task != null)
                 return task;
 
-            throw new Exception($"Task with ID {id} not found");
+            throw new KeyNotFoundException($"Task with ID {id} not found");
         
         }
 
         public async Task<IReadOnlyCollection<TaskEntity>> GetAllAsync(CancellationToken cancellationToken)
         {
-            return await _tasks.ToListAsync(cancellationToken);
+            var query = _tasks.AsQueryable();
+            query = query.Include(t => t.Board);
+            query = query.Include(t => t.Owner);
+            return await query.ToListAsync(cancellationToken);
         }
 
         public async Task<IReadOnlyCollection<TaskEntity>> ListAsync(
-            Func<IQueryable<TaskEntity>, IOrderedQueryable<TaskEntity>>? sortedBy
-            , Expression<Func<TaskEntity, bool>>[]? filters = null
+            Func<IQueryable<TaskEntity>, IOrderedQueryable<TaskEntity>>? sortedBy = null
+            , List<Expression<Func<TaskEntity, bool>>>? filters = null
             , CancellationToken cancellationToken = default
             , Expression<Func<TaskEntity, object>>[]? includeProperties = null
         )

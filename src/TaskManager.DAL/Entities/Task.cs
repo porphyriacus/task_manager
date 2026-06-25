@@ -28,7 +28,7 @@ namespace TaskManager.DAL.Entities
 
         protected TaskEntity() { }
 
-        public TaskEntity(int boardId, string ownerId, string name, string description, DateTime deadline, TaskPriority priority)
+        public TaskEntity(int boardId, string ownerId, string name, string description, DateTime? deadline, TaskPriority priority)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException(nameof(name));
@@ -46,6 +46,14 @@ namespace TaskManager.DAL.Entities
             if(System.String.IsNullOrEmpty(newName))
                 throw new ArgumentNullException(nameof(newName));
             Name = newName;
+        }
+        public void ChangeDeadline(DateTime? deadline)
+        {
+            Deadline = deadline ?? null;
+        }
+        public void ChangePriority(TaskPriority priority)
+        {
+            Priority = priority;
         }
         public void ChangeDescription(string newDescription)
         {

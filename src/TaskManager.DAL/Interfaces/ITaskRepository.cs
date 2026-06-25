@@ -11,16 +11,16 @@ namespace TaskManager.DAL.Interfaces
         public Task<TaskEntity> GetTaskByIdAsync(
             int id
             , CancellationToken cancellationToken = default
-            , Expression<Func<TaskEntity, object>>[]? includeProperties = null
+            , params Expression<Func<TaskEntity, object>>[]? includeProperties 
             );
 
         public Task<IReadOnlyCollection<TaskEntity>> GetAllAsync(CancellationToken cancellationToken);
 
         public Task<IReadOnlyCollection<TaskEntity>> ListAsync(
             Func<IQueryable<TaskEntity>, IOrderedQueryable<TaskEntity>>? sortedBy
-            , Expression<Func<TaskEntity, bool>>[]? filters = null
+            , List<Expression<Func<TaskEntity, bool>>>? filters = null
             , CancellationToken cancellationToken = default
-            , Expression<Func<TaskEntity, object>>[]? includeProperties = null
+            , params Expression<Func<TaskEntity, object>>[]? includeProperties
         );
 
         public Task AddAsync(TaskEntity task, CancellationToken cancellationToken = default);
