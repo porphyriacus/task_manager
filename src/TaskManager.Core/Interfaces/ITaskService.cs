@@ -8,6 +8,7 @@ namespace TaskManager.Core.Interfaces
     public interface ITaskService
     {
         public Task<TaskSummaryDto> CreateAsync(TaskCreateDto create, string ownerId, CancellationToken cancellationToken);
+        public Task<List<TaskSummaryDto>> GetAllAsync(CancellationToken cancellationToken);
         public Task<List<TaskSummaryDto>> GetListAsync(TaskFilteredDto search, CancellationToken cancellationToken);
 
         public Task<TaskSummaryDto> GetByIdAsync(int id, CancellationToken cancellationToken);
