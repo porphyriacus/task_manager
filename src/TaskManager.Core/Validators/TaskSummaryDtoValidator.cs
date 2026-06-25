@@ -12,13 +12,13 @@ namespace TaskManager.Core.Validators
 
             RuleFor(t => t.Name)
                 .NotNull()
-                .WithMessage("Name is requered")
+                .WithMessage("Name is required")
                 .Must(n => n?.Length > 2 && n.Length < 201)
                 .WithMessage("Can not be longer than 100 symbols and shorter than 3 symbols");
 
             RuleFor(t => t.Boardname)
                .NotNull()
-               .WithMessage("Boardname is requered")
+               .WithMessage("Boardname is required")
                .Must(n => n?.Length > 2 && n.Length < 201)
                .WithMessage("Can not be longer than 100 symbols and shorter than 3 symbols");
 
