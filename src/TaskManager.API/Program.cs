@@ -1,12 +1,13 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+//swager
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var connectionstring = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(
@@ -19,38 +20,59 @@ builder.Services.AddValidators()
 builder.Services.AddRepositories();
 
 
+
+
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    //var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    //    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+    //var testUser = await userManager.FindByIdAsync("test_user_id");
+    //if (testUser == null)
+    //{
+    //    testUser = new User
+    //    {
+    //        Id = "test_user_id",
+    //        UserName = "test_user",
+    //        Email = "test@example.com",
+    //        EmailConfirmed = true
+    //    };
+    //    await userManager.CreateAsync(testUser, "Test123!");
+    //}
+    //if (!context.Boards.Any())
+    //{
+    //    if (!context.Projects.Any())
+    //    {
+    //        var project = new Project(
+    //            ownerId: "test_user_id",
+    //            name: "Тестовый проект",
+    //            description: "Для тестирования"
+    //        );
+    //        context.Projects.Add(project);
+    //        context.SaveChanges(); 
+    //    }
+
+    //    var board = new Board(
+    //        projectId: 1,
+    //        name: "Тестовая доска",
+    //        description: "Доска для тестирования задач"
+    //    );
+    //    context.Boards.Add(board);
+    //    context.SaveChanges(); 
+    //}
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+app.UseRouting();
+app.MapControllers();
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

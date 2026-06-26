@@ -85,6 +85,10 @@ namespace TaskManager.API.Controllers
             if (!validationResult.IsValid)
                 return BadRequest(validationResult.Errors);
 
+            
+
+            // until BoardRepository added
+            dto.BoardId = 1;
             // until JWT added
             var ownerId = "test_user_id";
             //var ownerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
