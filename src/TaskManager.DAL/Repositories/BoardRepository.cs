@@ -71,12 +71,7 @@ namespace TaskManager.DAL.Repositories
 
         public async Task AddAsync(Board board, CancellationToken cancellationToken = default)
         {
-            var exist = await _boards.FirstOrDefaultAsync(b => b.Name == board.Name && b.ProjectId == board.ProjectId, cancellationToken);
-            if(exist != null)
-            {
-                throw new InvalidOperationException("Board with this name already exists in the project");
-            }
-
+           
             await _boards.AddAsync(board, cancellationToken);
         }
 

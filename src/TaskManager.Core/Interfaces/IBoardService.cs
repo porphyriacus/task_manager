@@ -11,7 +11,7 @@ namespace TaskManager.Core.Interfaces
         public Task<List<BoarsResponseDto>> GetAllAsync(CancellationToken cancellationToken);
         public Task<BoarsResponseDto> GetByIdAsync(int id, CancellationToken cancellationToken);
 
-        public Task<BoarsResponseDto> CreateAsync(BoardCreateDto create, string ownerId, CancellationToken cancellationToken);
+        public Task<BoarsResponseDto> CreateAsync(BoardCreateDto create, CancellationToken cancellationToken);
         public Task<BoarsResponseDto> UpdateAsync(BoardUpdateDto create, CancellationToken cancellationToken);
         public Task<BoarsResponseDto> DeleteAsync(int id, CancellationToken cancellationToken);
     }

@@ -26,5 +26,18 @@ namespace TaskManager.DAL.Entities
             Name = name;
             Description = description ?? string.Empty;
         }
+
+        public void ChangeName(string newName)
+        {
+            if (System.String.IsNullOrEmpty(newName))
+                throw new ArgumentNullException(nameof(newName));
+            Name = newName;
+        }
+        public void ChangeDescription(string newDescription)
+        {
+            if (System.String.IsNullOrEmpty(newDescription))
+                throw new ArgumentNullException(nameof(newDescription));
+            Description = newDescription;
+        }
     }
 }

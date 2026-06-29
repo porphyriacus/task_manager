@@ -23,6 +23,8 @@ namespace TaskManager.Core
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
             services.AddScoped<ITaskService, TaskService>();
+            services.AddScoped<IProjectService, ProjectService>();
+            services.AddScoped<IBoardService, BoardService>();
 
             return services;
         }

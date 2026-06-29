@@ -9,15 +9,16 @@ using TaskManager.DAL.Interfaces;
 
 namespace TaskManager.DAL.Repositories
 {
-    internal class ProjectRepository : IProjectRepository
+    public class ProjectRepository : IProjectRepository
     {
         private readonly DbSet<Project> _project;
         private readonly AppDbContext _context;
 
-        public ProjectRepository(DbSet<Project> projects, AppDbContext context)
+        public ProjectRepository(AppDbContext context)
         {
-            _project = projects;
+            
             _context = context;
+            _project = _context.Set<Project>();
         }
 
         public async Task<Project> GetByIdAsync(int id, CancellationToken cancellationToken, params Expression<Func<Project, object>>[]? includeProperties)
@@ -37,7 +38,7 @@ namespace TaskManager.DAL.Repositories
             if (_project != null)
                 return project;
 
-            throw new KeyNotFoundException($"Task with ID {id} not found");
+            throw new KeyNotFoundException($"Project with ID {id} not found");
         }
         public async Task<IReadOnlyCollection<Project>> ListAsync(
             List<Expression<Func<Project, bool>>>? filters = null
@@ -69,12 +70,6 @@ namespace TaskManager.DAL.Repositories
 
         public async Task AddAsync(Project project, CancellationToken cancellationToken = default)
         {
-            var exist = await _project.FirstOrDefaultAsync(b => b.Name == project.Name && b.OwnerId == project.OwnerId , cancellationToken);
-            if (exist != null)
-            {
-                throw new InvalidOperationException("Project with this name already exists");
-            }
-
             await _project.AddAsync(project, cancellationToken);
         }
 
@@ -84,7 +79,7 @@ namespace TaskManager.DAL.Repositories
             var exist = await _project.FirstOrDefaultAsync(b => b.Id == project.Id, cancellationToken);
             if (exist == null)
             {
-                throw new InvalidOperationException($"Board with ID {project.Id} not found");
+                throw new InvalidOperationException($"Project with ID {project.Id} not found");
             }
             _context.Entry(exist).CurrentValues.SetValues(project);
         }
@@ -94,9 +89,9 @@ namespace TaskManager.DAL.Repositories
             var exist = await _project.FirstOrDefaultAsync(b => b.Id == project.Id, cancellationToken);
             if (exist == null)
             {
-                throw new InvalidOperationException($"Board with ID {project.Id} not found");
+                throw new InvalidOperationException($"Project with ID {project.Id} not found");
             }
-            _project.Remove(project, cancellationToken);
+            _project.Remove(project);
         }
     }
 }

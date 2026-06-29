@@ -14,6 +14,10 @@ namespace TaskManager.DAL.Interfaces
             , params Expression<Func<TaskEntity, object>>[]? includeProperties 
             );
 
+        public Task<IReadOnlyCollection<TaskEntity>> FirstOrDefaultAsync(
+            List<Expression<Func<TaskEntity, bool>>>? filters = null
+            , CancellationToken cancellationToken = default
+            , Expression<Func<TaskEntity, object>>[]? includeProperties = null);
         public Task<IReadOnlyCollection<TaskEntity>> GetAllAsync(CancellationToken cancellationToken);
 
         public Task<IReadOnlyCollection<TaskEntity>> ListAsync(

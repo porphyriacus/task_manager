@@ -40,9 +40,9 @@ namespace TaskManager.API.Controllers
                 var task = await _taskService.GetByIdAsync(id, cancellationToken);
                 return Ok(task);
             }
-            catch (KeyNotFoundException)
+            catch (KeyNotFoundException ex)
             {
-                return NotFound();
+                return NotFound(ex.Message);
             }
 
         }
@@ -58,9 +58,13 @@ namespace TaskManager.API.Controllers
                 else 
                     return Ok(tasks);
             }
-            catch (Exception)
+            catch (KeyNotFoundException ex)
             {
-                return BadRequest();
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
 
@@ -85,18 +89,31 @@ namespace TaskManager.API.Controllers
             if (!validationResult.IsValid)
                 return BadRequest(validationResult.Errors);
 
-            
-
-            // until BoardRepository added
-            dto.BoardId = 1;
-            // until JWT added
-            var ownerId = "test_user_id";
-            //var ownerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            //if (string.IsNullOrEmpty(ownerId))
-            //    return Unauthorized();
-
-            var task = await _taskService.CreateAsync(dto, ownerId, ct);
-            return CreatedAtAction(nameof(GetById), new { id = task.Id }, task);
+            try
+            {
+                var ownerId = "test_user_id";
+                //var ownerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                //if (string.IsNullOrEmpty(ownerId))
+                //    return Unauthorized();
+                var task = await _taskService.CreateAsync(dto, ownerId, ct);
+                return CreatedAtAction(nameof(GetById), new { id = task.Id }, task);
+            }
+            catch (ArgumentException ex) 
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{id}")]
