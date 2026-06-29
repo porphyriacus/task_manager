@@ -9,7 +9,7 @@ namespace TaskManager.Core.DTOs.ProjectDTO
     {
         public int Id { get;  set; }
         public string OwnerId { get; set; }
-        public User Owner { get; set; }
+        public string OwnerName { get; set; }
 
         public string Name { get; set; }
         public string Description { get; set; } = string.Empty;

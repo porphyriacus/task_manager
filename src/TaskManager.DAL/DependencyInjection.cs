@@ -12,8 +12,9 @@ namespace TaskManager.DAL
 
         public static IServiceCollection AddRepositories(this IServiceCollection services)
         {
+            services.AddScoped<IProjectRepository, ProjectRepository>();
+            services.AddScoped<IBoardRepository, BoardRepository>();
             services.AddScoped<ITaskRepository, TaskRepository>();
-
             return services;
         }
     }

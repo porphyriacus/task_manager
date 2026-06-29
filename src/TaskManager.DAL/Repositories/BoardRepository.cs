@@ -9,15 +9,15 @@ using TaskManager.DAL.Interfaces;
 
 namespace TaskManager.DAL.Repositories
 {
-    internal class BoardRepository : IBoardRepository
+    public class BoardRepository : IBoardRepository
     {
         private readonly AppDbContext _context;
         private readonly DbSet<Board> _boards;
 
-        public BoardRepository(AppDbContext context, DbSet<Board> boards)
+        public BoardRepository(AppDbContext context)
         {
             _context = context;
-            _boards = boards;
+            _boards = _context.Set<Board>(); ;
         }
 
         public async Task<Board> GetByIdAsync(int id, CancellationToken cancellationToken, params Expression<Func<Board, object>>[]? includeProperties)

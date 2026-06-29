@@ -65,6 +65,7 @@ namespace TaskManager.Core.Services
                 , filter
                 , cancellationToken
                 , t => t.Board
+                , t => t.Board.Project
                 , t => t.Owner);
             return tasks.Select(MapToSummaryDto).ToList();
         }
@@ -73,6 +74,7 @@ namespace TaskManager.Core.Services
         {
             var task = await _taskRepository.GetTaskByIdAsync(id, cancellationToken
                                                         , t => t.Board
+                                                        , t => t.Board.Project
                                                         , t => t.Owner);
             if (task == null)
             {
@@ -106,7 +108,13 @@ namespace TaskManager.Core.Services
             await _taskRepository.AddAsync(task, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
-            return MapToSummaryDto(task);
+            var createdTask = await _taskRepository.GetTaskByIdAsync(
+                task.Id,
+                cancellationToken,
+                t => t.Board,
+                t => t.Board.Project,
+                t => t.Owner);
+            return MapToSummaryDto(createdTask);
         }
         public async Task<TaskSummaryDto> UpdateAsync(TaskUpdateDto dto, CancellationToken cancellationToken)
         {
@@ -124,7 +132,14 @@ namespace TaskManager.Core.Services
 
             await _taskRepository.UpdateAsync(task, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
-            return MapToSummaryDto(task);
+
+            var updatedTask = await _taskRepository.GetTaskByIdAsync(
+                task.Id,
+                cancellationToken,
+                t => t.Board,
+                t => t.Board.Project,
+                t => t.Owner);
+            return MapToSummaryDto(updatedTask);
 
         }
         public async Task<TaskSummaryDto> DeleteAsync(int id, CancellationToken cancellationToken)
@@ -152,6 +167,7 @@ namespace TaskManager.Core.Services
                 , filter
                 , cancellationToken
                 , t => t.Board
+                , t => t.Board.Project
                 , t => t.Owner);
 
             return tasks.Select(MapToSummaryDto).ToList();
@@ -166,6 +182,7 @@ namespace TaskManager.Core.Services
                 Id = task.Id,
                 BoardId = task.BoardId,
                 Boardname = task.Board?.Name ?? "Unknown",
+                ProjectId = task.Board?.ProjectId ?? 0,
                 OwnerId = task.OwnerId,
                 OwnerName = task.Owner?.UserName ?? "Unknown",
                 Name = task.Name,

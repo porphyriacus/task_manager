@@ -1,6 +1,8 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
+using TaskManager.API.Hubs;
 
 namespace TaskManager.API.Controllers
 {
@@ -9,20 +11,25 @@ namespace TaskManager.API.Controllers
     public class TaskEntitiesController : ControllerBase
     {
         private readonly ITaskService _taskService;
+
         private readonly IValidator<TaskCreateDto> _createValidator;
         private readonly IValidator<TaskUpdateDto> _updateValidator;
         private readonly IValidator<TaskFilteredDto> _filterValidator;
+
+        private readonly IHubContext<TaskHub> _hubContext;
 
         public TaskEntitiesController(
             ITaskService taskService
             , IValidator<TaskCreateDto> createValidator
             , IValidator<TaskUpdateDto> updateValidator
-            , IValidator<TaskFilteredDto> filterValidator)
+            , IValidator<TaskFilteredDto> filterValidator
+            , IHubContext<TaskHub> hubContext)
         {
             _taskService = taskService;
             _createValidator = createValidator;
             _updateValidator = updateValidator;
             _filterValidator = filterValidator;
+            _hubContext = hubContext;
         }
 
         [HttpGet]
@@ -96,6 +103,11 @@ namespace TaskManager.API.Controllers
                 //if (string.IsNullOrEmpty(ownerId))
                 //    return Unauthorized();
                 var task = await _taskService.CreateAsync(dto, ownerId, ct);
+
+                await _hubContext.Clients
+                    .Group($"project_{task.ProjectId}")
+                    .SendAsync("ReceiveNewTask", task);
+
                 return CreatedAtAction(nameof(GetById), new { id = task.Id }, task);
             }
             catch (ArgumentException ex) 
@@ -129,6 +141,10 @@ namespace TaskManager.API.Controllers
             try
             {
                 var task = await _taskService.UpdateAsync(dto, ct);
+
+                await _hubContext.Clients
+                    .Group($"project_{task.ProjectId}")
+                    .SendAsync("ReceiveUpdatedTask", task);
                 return Ok(task);
             }
             catch (KeyNotFoundException)

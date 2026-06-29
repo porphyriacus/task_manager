@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using TaskManager.API.Hubs;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,8 +20,8 @@ builder.Services.AddValidators()
 // dal
 builder.Services.AddRepositories();
 
-
-
+//signal
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
@@ -72,7 +73,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseRouting();
+app.UseStaticFiles();
 app.MapControllers();
+app.MapHub<TaskHub>("/taskHub");
 
 app.Run();
 

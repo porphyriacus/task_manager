@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Text;
 using TaskManager.Core.DTOs.ProjectDTO;
 using TaskManager.Core.Interfaces;
@@ -22,13 +23,14 @@ namespace TaskManager.Core.Services
             _context = appDbContext;
             _projectRepository = projectRepository;
         }
-        public async Task<List<ProjectResponseDto>> GetAllAsync(CancellationToken cancellationToken)
+        public async Task<List<ProjectResponseDto>> GetAllAsync(CancellationToken? cancellationToken, List<Expression<Func<Project, bool>>>? filters = null)
         {
-            var projects = await _projectRepository.ListAsync(null, cancellationToken
+            var projects = await _projectRepository.ListAsync(filters, cancellationToken ?? default
                                                         , projects => projects.Owner);
             return projects.Select(MapToResponseDto).ToList();
 
         }
+
         public async Task<ProjectResponseDto> GetByIdAsync(int id, CancellationToken cancellationToken)
         {
             try
