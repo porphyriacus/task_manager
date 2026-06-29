@@ -6,7 +6,7 @@ using TaskManager.DAL.Entities;
 
 namespace TaskManager.DAL.Interfaces
 {
-    internal interface IBoardRepository
+    public interface IBoardRepository
     {
         public Task<Board> GetByIdAsync(int id, CancellationToken cancellationToken, params Expression<Func<Board, object>>[]? includeProperties);
         public Task<IReadOnlyCollection<Board>> ListAsync(

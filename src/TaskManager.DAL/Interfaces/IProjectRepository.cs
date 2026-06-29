@@ -6,12 +6,11 @@ using TaskManager.DAL.Entities;
 
 namespace TaskManager.DAL.Interfaces
 {
-    internal interface IProjectRepository
+    public interface IProjectRepository
     {
         public Task<Project> GetByIdAsync(int id, CancellationToken cancellationToken, params Expression<Func<Project, object>>[]? includeProperties);
         public Task<IReadOnlyCollection<Project>> ListAsync(
-            Func<IQueryable<Project>, IOrderedQueryable<Project>>? orderBy = null
-            , List<Expression<Func<Project, bool>>>? filters = null
+            List<Expression<Func<Project, bool>>>? filters = null
             , CancellationToken cancellationToken = default
             , params Expression<Func<Project, object>>[]? includeProperties);
 
