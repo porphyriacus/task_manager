@@ -1,6 +1,8 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
+using TaskManager.API.Hubs;
 
 namespace TaskManager.API.Controllers
 {
@@ -9,20 +11,25 @@ namespace TaskManager.API.Controllers
     public class TaskEntitiesController : ControllerBase
     {
         private readonly ITaskService _taskService;
+
         private readonly IValidator<TaskCreateDto> _createValidator;
         private readonly IValidator<TaskUpdateDto> _updateValidator;
         private readonly IValidator<TaskFilteredDto> _filterValidator;
+
+        private readonly IHubContext<TaskHub> _hubContext;
 
         public TaskEntitiesController(
             ITaskService taskService
             , IValidator<TaskCreateDto> createValidator
             , IValidator<TaskUpdateDto> updateValidator
-            , IValidator<TaskFilteredDto> filterValidator)
+            , IValidator<TaskFilteredDto> filterValidator
+            , IHubContext<TaskHub> hubContext)
         {
             _taskService = taskService;
             _createValidator = createValidator;
             _updateValidator = updateValidator;
             _filterValidator = filterValidator;
+            _hubContext = hubContext;
         }
 
         [HttpGet]
@@ -40,9 +47,9 @@ namespace TaskManager.API.Controllers
                 var task = await _taskService.GetByIdAsync(id, cancellationToken);
                 return Ok(task);
             }
-            catch (KeyNotFoundException)
+            catch (KeyNotFoundException ex)
             {
-                return NotFound();
+                return NotFound(ex.Message);
             }
 
         }
@@ -58,9 +65,13 @@ namespace TaskManager.API.Controllers
                 else 
                     return Ok(tasks);
             }
-            catch (Exception)
+            catch (KeyNotFoundException ex)
             {
-                return BadRequest();
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
 
@@ -85,14 +96,36 @@ namespace TaskManager.API.Controllers
             if (!validationResult.IsValid)
                 return BadRequest(validationResult.Errors);
 
-            // until JWT added
-            var ownerId = "test_user_id";
-            //var ownerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            //if (string.IsNullOrEmpty(ownerId))
-            //    return Unauthorized();
+            try
+            {
+                var ownerId = "test_user_id";
+                //var ownerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                //if (string.IsNullOrEmpty(ownerId))
+                //    return Unauthorized();
+                var task = await _taskService.CreateAsync(dto, ownerId, ct);
 
-            var task = await _taskService.CreateAsync(dto, ownerId, ct);
-            return CreatedAtAction(nameof(GetById), new { id = task.Id }, task);
+                await _hubContext.Clients
+                    .Group($"project_{task.ProjectId}")
+                    .SendAsync("ReceiveNewTask", task);
+
+                return CreatedAtAction(nameof(GetById), new { id = task.Id }, task);
+            }
+            catch (ArgumentException ex) 
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{id}")]
@@ -108,6 +141,10 @@ namespace TaskManager.API.Controllers
             try
             {
                 var task = await _taskService.UpdateAsync(dto, ct);
+
+                await _hubContext.Clients
+                    .Group($"project_{task.ProjectId}")
+                    .SendAsync("ReceiveUpdatedTask", task);
                 return Ok(task);
             }
             catch (KeyNotFoundException)

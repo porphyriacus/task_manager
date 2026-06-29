@@ -12,6 +12,7 @@ namespace TaskManager.Core.DTOs.TaskDTO
         public int Id { get; set; }
 
         public int BoardId { get; set; }
+        public int ProjectId { get; set; }
         public string? Boardname { get; set; }
 
         public string? OwnerId { get; set; } = string.Empty;

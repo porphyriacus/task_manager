@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-using System.Text;
 using TaskManager.Core.DTOs.TaskDTO;
 using TaskManager.Core.Enums;
 using TaskManager.Core.Interfaces;
-using TaskManager.Core.Validators;
 using TaskManager.DAL.Data;
 using TaskManager.DAL.Entities;
 using TaskManager.DAL.Interfaces;
@@ -15,34 +12,15 @@ namespace TaskManager.Core.Services
     public class TaskService : ITaskService
     {
         private readonly ITaskRepository _taskRepository;
-        // private readonly IBoardRepository _boardRepository;
+        private readonly IBoardRepository _boardRepository;
         private readonly AppDbContext _context;
-        public TaskService(AppDbContext context, ITaskRepository taskRepository)
+        public TaskService(AppDbContext context, ITaskRepository taskRepository, IBoardRepository boardRepository)
         {
             _taskRepository = taskRepository;
             _context = context;
+            _boardRepository = boardRepository;
         }
 
-
-        public async Task<TaskSummaryDto> CreateAsync(TaskCreateDto dto, string ownerId, CancellationToken cancellationToken)
-        {
-            var priority = dto.Priority ?? TaskPriority.Medium;
-            if (dto.Deadline.HasValue && dto.Deadline.Value.Date == DateTime.UtcNow.Date)
-                priority = TaskPriority.High;
-
-            var task = new TaskEntity(
-                dto.BoardId
-                , ownerId
-                , dto.Name
-                , dto.Description ?? null
-                , dto.Deadline
-                , priority);
-
-            await _taskRepository.AddAsync(task, cancellationToken);
-            await _context.SaveChangesAsync(cancellationToken);
-
-            return MapToSummaryDto(task);
-        }
 
         public async Task<List<TaskSummaryDto>> GetAllAsync(CancellationToken cancellationToken)
         {
@@ -87,6 +65,7 @@ namespace TaskManager.Core.Services
                 , filter
                 , cancellationToken
                 , t => t.Board
+                , t => t.Board.Project
                 , t => t.Owner);
             return tasks.Select(MapToSummaryDto).ToList();
         }
@@ -95,6 +74,7 @@ namespace TaskManager.Core.Services
         {
             var task = await _taskRepository.GetTaskByIdAsync(id, cancellationToken
                                                         , t => t.Board
+                                                        , t => t.Board.Project
                                                         , t => t.Owner);
             if (task == null)
             {
@@ -103,7 +83,39 @@ namespace TaskManager.Core.Services
 
             return MapToSummaryDto(task);
         }
+        public async Task<TaskSummaryDto> CreateAsync(TaskCreateDto dto, string ownerId, CancellationToken cancellationToken)
+        {
+            var boardExist = await _boardRepository.GetByIdAsync(dto.BoardId, cancellationToken);
+            if (boardExist == null)
+                throw new KeyNotFoundException($"Board with id {dto.BoardId} doesnt exist");
 
+            var exists = await _context.Tasks.FirstOrDefaultAsync(t => t.Name == dto.Name && t.BoardId == dto.BoardId, cancellationToken);
+            if (exists != null)
+                throw new InvalidOperationException("Task with this name already exists in the board");
+
+            var priority = dto.Priority ?? TaskPriority.Medium;
+            if (dto.Deadline.HasValue && dto.Deadline.Value.Date == DateTime.UtcNow.Date)
+                priority = TaskPriority.High;
+
+            var task = new TaskEntity(
+                dto.BoardId
+                , ownerId
+                , dto.Name
+                , dto.Description ?? null
+                , dto.Deadline
+                , priority);
+
+            await _taskRepository.AddAsync(task, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            var createdTask = await _taskRepository.GetTaskByIdAsync(
+                task.Id,
+                cancellationToken,
+                t => t.Board,
+                t => t.Board.Project,
+                t => t.Owner);
+            return MapToSummaryDto(createdTask);
+        }
         public async Task<TaskSummaryDto> UpdateAsync(TaskUpdateDto dto, CancellationToken cancellationToken)
         {
             TaskEntity task = await _taskRepository.GetTaskByIdAsync(dto.Id, cancellationToken);
@@ -120,7 +132,14 @@ namespace TaskManager.Core.Services
 
             await _taskRepository.UpdateAsync(task, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
-            return MapToSummaryDto(task);
+
+            var updatedTask = await _taskRepository.GetTaskByIdAsync(
+                task.Id,
+                cancellationToken,
+                t => t.Board,
+                t => t.Board.Project,
+                t => t.Owner);
+            return MapToSummaryDto(updatedTask);
 
         }
         public async Task<TaskSummaryDto> DeleteAsync(int id, CancellationToken cancellationToken)
@@ -137,6 +156,10 @@ namespace TaskManager.Core.Services
 
         public async Task<List<TaskSummaryDto>> GetTaskByBoardId(int boardId, CancellationToken cancellationToken)
         {
+            var boardExist = await _boardRepository.GetByIdAsync(boardId, cancellationToken);
+            if (boardExist == null)
+                throw new KeyNotFoundException($"Board with id {boardId} doesnt exist");
+
             List<Expression<Func<TaskEntity, bool>>> filter = new List<Expression<Func<TaskEntity, bool>>> { t => t.BoardId == boardId};
 
             var tasks = await _taskRepository.ListAsync(
@@ -144,6 +167,7 @@ namespace TaskManager.Core.Services
                 , filter
                 , cancellationToken
                 , t => t.Board
+                , t => t.Board.Project
                 , t => t.Owner);
 
             return tasks.Select(MapToSummaryDto).ToList();
@@ -158,6 +182,7 @@ namespace TaskManager.Core.Services
                 Id = task.Id,
                 BoardId = task.BoardId,
                 Boardname = task.Board?.Name ?? "Unknown",
+                ProjectId = task.Board?.ProjectId ?? 0,
                 OwnerId = task.OwnerId,
                 OwnerName = task.Owner?.UserName ?? "Unknown",
                 Name = task.Name,
