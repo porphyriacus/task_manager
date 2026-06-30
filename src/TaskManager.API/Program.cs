@@ -1,14 +1,12 @@
-using FluentValidation;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
+using System.Text;
 using TaskManager.API.Hubs;
 
-
 var builder = WebApplication.CreateBuilder(args);
-//swager
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
 
 var connectionstring = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(
@@ -20,8 +18,85 @@ builder.Services.AddValidators()
 // dal
 builder.Services.AddRepositories();
 
+
+
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var secretKey = jwtSettings["SecretKey"] ?? throw new Exception("JWT SecretKey not configured");
+var issuer = jwtSettings["Issuer"] ?? "TaskManagerAPI";
+var audience = jwtSettings["Audience"] ?? "TaskManagerClient";
+var expiryMinutes = int.Parse(jwtSettings["ExpiryMinutes"] ?? "60");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,        
+            ValidateAudience = true,      
+
+            ValidateLifetime = true, 
+            ValidateIssuerSigningKey = true, // подпись 
+
+            ValidIssuer = issuer,         // кто должен быть выпускающим
+            ValidAudience = audience,     // для кого токен
+
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)) // ключ для проверки
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                // токен в Query String для сигнала
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/taskHub"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
+
+    });
+builder.Services.AddAuthorization();
+
+builder.Services.AddSwaggerGen(c =>
+{
+
+
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Task Manager API",
+        Version = "v1",
+        Description = "API for pupupu"
+    });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter tokem. Example: Bearer eyJhbGciOiJIUzI1NiIs..."
+    });
+
+    c.AddSecurityRequirement((document) => new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecuritySchemeReference("Bearer", document),
+            new List<string>()
+        }
+    });
+});
 //signal
 builder.Services.AddSignalR();
+//swager
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
@@ -72,8 +147,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseRouting();
 app.UseStaticFiles();
+
 app.MapControllers();
 app.MapHub<TaskHub>("/taskHub");
 
